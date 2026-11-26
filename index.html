@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Thời tiết biển">
-<meta name="theme-color" content="#0b4f78">
+<meta name="theme-color" content="#f4f7f9">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
 <title>Thời tiết tuyến biển</title>
@@ -14,379 +14,261 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Bố cục: một cột cho điện thoại. Đầu trang chọn tuyến, rồi cảnh báo, dải 7 ngày cả tuyến, cuối cùng từng điểm dọc tuyến (bấm để xem theo giờ) */
+/* Bố cục: một cột. Tuyến → ô trạng thái lớn của ngày đang chọn → dải 7 ngày (bấm chọn ngày) → danh sách điểm (bấm mở chi tiết) → thông báo */
 :root{
-  --nen:#edf2f5; --the:#ffffff; --chu:#10263a; --mo:#5a7084; --vien:#d4dfe7;
-  --nhan:#0b4f78; --nhan-nhat:#e1eef6; --nhan-chu:#ffffff;
-  --em:#17785f; --em-nen:#dcf1e9;
-  --dong:#a35f00; --dong-nen:#fcefd6;
-  --manh:#b8322a; --manh-nen:#fbe2de;
-  --bong:0 1px 2px rgba(16,38,58,.06),0 4px 14px rgba(16,38,58,.05);
+  --nen:#f4f7f9; --the:#ffffff; --chu:#0f2233; --mo:#6b7f90; --vien:#e3eaef; --nhan:#0a5c8a;
+  --em:#1b8a68; --em-nhat:#e3f4ed;
+  --dong:#c27400; --dong-nhat:#fdf1dc;
+  --manh:#c8372d; --manh-nhat:#fde6e3;
   --font:"Be Vietnam Pro",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --nen:#0a1620; --the:#12222f; --chu:#e2ecf3; --mo:#8ea5b7; --vien:#213647;
-  --nhan:#5cb4e8; --nhan-nhat:#173247; --nhan-chu:#05131d;
-  --em:#5fd0ab; --em-nen:#113a2f; --dong:#f0b44e; --dong-nen:#3a2b10; --manh:#ff8277; --manh-nen:#45201c;
-  --bong:none; color-scheme:dark}}
+  --nen:#0b141c; --the:#131f2a; --chu:#e4edf3; --mo:#8599a9; --vien:#1f2f3c; --nhan:#62b6e8;
+  --em:#5fd0a8; --em-nhat:#12352b; --dong:#f2b34f; --dong-nhat:#382910; --manh:#ff8378; --manh-nhat:#421f1b; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --nen:#0a1620; --the:#12222f; --chu:#e2ecf3; --mo:#8ea5b7; --vien:#213647;
-  --nhan:#5cb4e8; --nhan-nhat:#173247; --nhan-chu:#05131d;
-  --em:#5fd0ab; --em-nen:#113a2f; --dong:#f0b44e; --dong-nen:#3a2b10; --manh:#ff8277; --manh-nen:#45201c;
-  --bong:none; color-scheme:dark}
+  --nen:#0b141c; --the:#131f2a; --chu:#e4edf3; --mo:#8599a9; --vien:#1f2f3c; --nhan:#62b6e8;
+  --em:#5fd0a8; --em-nhat:#12352b; --dong:#f2b34f; --dong-nhat:#382910; --manh:#ff8378; --manh-nhat:#421f1b; color-scheme:dark}
 
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--nen);color:var(--chu);font-family:var(--font);font-size:15px;line-height:1.45;
   padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-.khung{max-width:640px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 32px;display:flex;flex-direction:column;gap:16px}
+.khung{max-width:560px;margin:0 auto;padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));padding-block:20px 40px;display:flex;flex-direction:column;gap:24px}
 .so{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;padding:0}
+button:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--nhan);outline-offset:3px;border-radius:6px}
+a{color:var(--nhan);text-decoration:none;font-weight:600}
 
-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-h1{font-size:20px;font-weight:700;margin:0;text-wrap:balance}
-.capnhat{font-size:13px;color:var(--mo);margin-top:2px}
-button{font:inherit;color:inherit;cursor:pointer}
-.nut{border:0;background:var(--nhan);color:var(--nhan-chu);font-weight:600;font-size:14px;padding:9px 14px;border-radius:10px;white-space:nowrap}
-.nut:disabled{opacity:.55}
-.nut:focus-visible,select:focus-visible,.diem-dau:focus-visible{outline:2px solid var(--nhan);outline-offset:2px}
+/* Đầu trang */
+.dau{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tuyen{display:flex;align-items:center;gap:6px;min-width:0;font-size:17px;font-weight:600}
+.chon{position:relative;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:4px 0}
+.chon select{position:absolute;inset:0;width:100%;opacity:0;font-size:16px;cursor:pointer}
+.chon:focus-within{outline:2px solid var(--nhan);outline-offset:3px;border-radius:6px}
+.tuyen .mui{color:var(--mo);font-weight:400}
+.lammoi{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--mo);flex:none}
+.lammoi svg{width:20px;height:20px}
+.lammoi.quay svg{animation:quay 1s linear infinite}
+@keyframes quay{to{transform:rotate(360deg)}}
 
-.tuyen{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:end}
-.tuyen label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--mo);font-weight:500;min-width:0}
-select{appearance:none;-webkit-appearance:none;width:100%;font:inherit;font-size:15px;font-weight:600;color:var(--chu);background:var(--the);border:1px solid var(--vien);border-radius:10px;padding:10px 12px;min-width:0}
-.doi{border:1px solid var(--vien);background:var(--the);border-radius:10px;width:42px;height:44px;font-size:18px;color:var(--nhan)}
+/* Ô trạng thái */
+.tt{border-radius:22px;padding:22px 22px 20px;display:flex;flex-direction:column;gap:6px}
+.tt.m0{background:var(--em-nhat)} .tt.m1{background:var(--dong-nhat)} .tt.m2{background:var(--manh-nhat)}
+.tt-ngay{font-size:13px;font-weight:500;color:var(--mo)}
+.tt-chu{font-size:34px;font-weight:700;line-height:1.1;letter-spacing:-.01em}
+.m0 .tt-chu{color:var(--em)} .m1 .tt-chu{color:var(--dong)} .m2 .tt-chu{color:var(--manh)}
+.tt-phu{font-size:15px;color:var(--chu)}
 
-.bao{border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
-.bao.m0{background:var(--em-nen);color:var(--em)}
-.bao.m1{background:var(--dong-nen);color:var(--dong)}
-.bao.m2{background:var(--manh-nen);color:var(--manh)}
-.bao-tieude{font-weight:700;font-size:16px}
-.bao-ngay{display:flex;flex-direction:column;gap:4px}
-.bao-ngay b{font-weight:600}
-.bao-dong{color:var(--chu);font-size:14px}
-.bao-dong .ten{font-weight:600}
+/* Dải 7 ngày */
+.bay{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:2px}
+.ngay{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0;border-radius:14px}
+.ngay .thu{font-size:12px;font-weight:500;color:var(--mo)}
+.ngay .so{font-size:14px;font-weight:600}
+.ngay[aria-pressed="true"]{background:var(--the);box-shadow:0 1px 3px rgba(15,34,51,.08)}
+.ngay[aria-pressed="true"] .thu{color:var(--chu)}
+.cham{width:8px;height:8px;border-radius:50%;flex:none}
+.c0{background:var(--em)} .c1{background:var(--dong)} .c2{background:var(--manh)}
 
-.the{background:var(--the);border-radius:14px;box-shadow:var(--bong);border:1px solid var(--vien)}
-.muc-ten{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--mo);margin:4px 0 -6px}
+/* Danh sách điểm */
+.ds{background:var(--the);border-radius:18px;overflow:hidden}
+.diem + .diem{border-top:1px solid var(--vien)}
+.hang{width:100%;display:flex;align-items:center;gap:12px;padding:15px 18px;text-align:left}
+.hang .ten{flex:1;min-width:0;font-weight:500}
+.hang .so{font-weight:600}
+.hang .don{color:var(--mo);font-weight:400;font-size:13px;margin-left:2px}
+.chi-tiet{padding:0 18px 16px 38px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.nhanh{display:flex;flex-wrap:wrap;gap:4px 16px;color:var(--mo)}
+.nhanh b{color:var(--chu);font-weight:600}
+.gio-list{display:grid;grid-template-columns:auto 1fr auto;gap:6px 14px;color:var(--mo)}
+.gio-list .so{color:var(--chu)}
+.gio-list .canh{color:var(--dong);font-weight:600}
 
-.bay{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding:10px}
-.ngay{border-radius:10px;padding:8px 2px;text-align:center;display:flex;flex-direction:column;gap:2px;min-width:0}
-.ngay .thu{font-size:12px;font-weight:600}
-.ngay .ng{font-size:11px;opacity:.8}
-.ngay .song{font-size:15px;font-weight:700}
-.ngay .gio{font-size:11px}
-.c0{background:var(--em-nen);color:var(--em)}
-.c1{background:var(--dong-nen);color:var(--dong)}
-.c2{background:var(--manh-nen);color:var(--manh)}
-
-.chu-giai{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mo)}
+.chu-giai{font-size:12px;color:var(--mo);display:flex;gap:14px;flex-wrap:wrap;margin-top:-12px}
 .chu-giai span{display:inline-flex;align-items:center;gap:6px}
-.cham{width:10px;height:10px;border-radius:3px;display:inline-block}
-.cham.c0{background:var(--em)}.cham.c1{background:var(--dong)}.cham.c2{background:var(--manh)}
 
-.ds{display:flex;flex-direction:column;gap:10px}
-.diem{overflow:hidden}
-.diem-dau{width:100%;text-align:left;border:0;background:none;padding:12px 14px 10px;display:flex;flex-direction:column;gap:8px}
-.diem-hang{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-.diem-ten{font-weight:700;font-size:16px}
-.diem-ten small{font-weight:500;color:var(--mo);font-size:12px;margin-left:6px}
-.diem-gio{font-size:13px;color:var(--mo);display:flex;gap:4px 12px;flex-wrap:wrap}
-.diem-gio b{color:var(--chu);font-weight:600}
-.nhan{font-size:12px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
-.mini{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
-.mini div{border-radius:6px;padding:4px 0;text-align:center;font-size:12px;font-weight:600}
-.mini div small{display:block;font-size:10px;font-weight:500;opacity:.8}
-.mui{display:inline-block;line-height:1}
-.chi-tiet{border-top:1px solid var(--vien);padding:4px 14px 12px}
-.cuon{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{font-size:11px;font-weight:600;color:var(--mo);text-align:right;padding:8px 6px 6px;white-space:nowrap}
-th:first-child,td:first-child{text-align:left}
-td{padding:6px;text-align:right;border-top:1px solid var(--vien);white-space:nowrap}
-tr.dong-ngay td{font-weight:700;color:var(--nhan);background:var(--nhan-nhat);border-top:0;font-size:12px}
-td.c1,td.c2{font-weight:700}
-.lien{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:14px}
-a{color:var(--nhan);font-weight:600;text-decoration:none}
+/* Thông báo */
+.tb{background:var(--the);border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.tb h2{font-size:16px;margin:0;font-weight:600}
+.buoc{display:flex;flex-direction:column;gap:8px;font-size:14px;color:var(--mo);margin:0;padding-left:20px}
+.buoc b{color:var(--chu);font-weight:600}
+.kenh{display:flex;align-items:center;gap:8px;background:var(--nen);border-radius:12px;padding:10px 12px;font-size:14px}
+.kenh code{flex:1;min-width:0;overflow-wrap:anywhere;font-family:ui-monospace,Menlo,monospace;color:var(--chu)}
+.kenh button{color:var(--nhan);font-weight:600;font-size:14px}
 
-.loi{background:var(--manh-nen);color:var(--manh);border-radius:12px;padding:10px 14px;font-size:14px}
-footer{font-size:12px;color:var(--mo);display:flex;flex-direction:column;gap:4px}
-.trong{color:var(--mo);text-align:center;padding:24px 8px}
-@media (max-width:380px){.ngay .gio{display:none}}
-@media (prefers-reduced-motion:no-preference){.dang-tai{animation:nhap 1.2s ease-in-out infinite}@keyframes nhap{50%{opacity:.5}}}
+.loi{font-size:14px;color:var(--manh)}
+.chan{font-size:12px;color:var(--mo);text-align:center;line-height:1.6}
+@media (prefers-reduced-motion:reduce){.lammoi.quay svg{animation:none}}
 </style>
 </head>
 <body>
 <div class="khung">
-  <header>
-    <div>
-      <h1>Thời tiết tuyến biển</h1>
-      <div class="capnhat so" id="capnhat">Đang tải số liệu</div>
+  <div class="dau">
+    <div class="tuyen">
+      <span class="chon"><span id="tu-ten">Vũng Tàu</span><select id="tu" aria-label="Cảng đi"></select></span>
+      <button class="mui" id="doi" type="button" aria-label="Đổi chiều">→</button>
+      <span class="chon"><span id="den-ten">Hải Phòng</span><select id="den" aria-label="Cảng đến"></select></span>
     </div>
-    <button class="nut" id="lammoi" type="button">Làm mới</button>
-  </header>
-
-  <div class="tuyen">
-    <label for="tu">Từ<select id="tu"></select></label>
-    <button class="doi" id="doi" type="button" aria-label="Đổi chiều">⇄</button>
-    <label for="den">Đến<select id="den"></select></label>
+    <button class="lammoi" id="lammoi" type="button" aria-label="Làm mới">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4v5h-5"/></svg>
+    </button>
   </div>
 
   <div id="loi" class="loi" hidden></div>
-  <div id="bao"></div>
 
-  <div class="muc-ten">7 ngày cả tuyến</div>
-  <div class="the">
-    <div class="bay" id="bay"></div>
+  <div class="tt m0" id="tt">
+    <div class="tt-ngay" id="tt-ngay">Hôm nay</div>
+    <div class="tt-chu" id="tt-chu">Đang tải</div>
+    <div class="tt-phu so" id="tt-phu">&nbsp;</div>
   </div>
+
+  <div class="bay" id="bay"></div>
   <div class="chu-giai">
     <span><i class="cham c0"></i>Êm</span>
-    <span><i class="cham c1"></i>Biển động: gió cấp 6, sóng 2 m trở lên</span>
-    <span><i class="cham c2"></i>Động mạnh: gió cấp 8, sóng 3,5 m trở lên</span>
+    <span><i class="cham c1"></i>Biển động</span>
+    <span><i class="cham c2"></i>Động mạnh</span>
   </div>
 
-  <div class="muc-ten">Dọc tuyến</div>
-  <div class="ds" id="ds"><div class="trong">Đang tải số liệu</div></div>
+  <div class="ds" id="ds"></div>
 
-  <footer>
-    <div>Số liệu mô hình ECMWF (mô hình mặc định trên Windy), lấy qua Open-Meteo.</div>
-    <div>Tin bão chính thức: <a href="https://nchmf.gov.vn" target="_blank" rel="noopener">nchmf.gov.vn</a></div>
-  </footer>
+  <div class="tb">
+    <h2>Nhận thông báo</h2>
+    <ol class="buoc">
+      <li>Cài app <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">ntfy</a> trên iPhone</li>
+      <li>Trong app bấm <b>+</b>, dán tên kênh dưới đây, bấm <b>Subscribe</b></li>
+    </ol>
+    <div class="kenh"><code id="kenh">tau-bien</code><button type="button" id="chep">Chép</button></div>
+    <div class="buoc" style="padding-left:0" id="tb-tuyen"></div>
+  </div>
+
+  <div class="chan" id="chan">Mô hình ECMWF, như Windy · <a href="https://nchmf.gov.vn" target="_blank" rel="noopener">Tin bão chính thức</a></div>
 </div>
 
+<script src="chung.js"></script>
 <script>
 'use strict';
-/* Các điểm dọc bờ biển, xếp từ Bắc vào Nam rồi vòng sang vịnh Thái Lan. Tọa độ lấy ngoài khơi gần cảng để có số liệu sóng. */
-var DIEM = [
-  {id:'qn',  ten:'Quảng Ninh',        lat:20.85, lon:107.35},
-  {id:'hp',  ten:'Hải Phòng',         lat:20.70, lon:106.95},
-  {id:'vbb', ten:'Giữa vịnh Bắc Bộ',  lat:19.80, lon:107.20, vung:1},
-  {id:'ns',  ten:'Nghi Sơn',          lat:19.30, lon:106.00},
-  {id:'va',  ten:'Vũng Áng',          lat:18.10, lon:106.55},
-  {id:'cc',  ten:'Vùng biển Cồn Cỏ',  lat:17.10, lon:107.50, vung:1},
-  {id:'dn',  ten:'Đà Nẵng',           lat:16.15, lon:108.35},
-  {id:'dq',  ten:'Dung Quất',         lat:15.45, lon:109.00},
-  {id:'qnh', ten:'Quy Nhơn',          lat:13.75, lon:109.35},
-  {id:'nt',  ten:'Nha Trang',         lat:12.20, lon:109.35},
-  {id:'pt',  ten:'Vùng biển Phan Thiết', lat:10.85, lon:108.45, vung:1},
-  {id:'vt',  ten:'Vũng Tàu',          lat:10.25, lon:107.10},
-  {id:'cd',  ten:'Côn Đảo',           lat:8.70,  lon:106.60},
-  {id:'cm',  ten:'Mũi Cà Mau',        lat:8.40,  lon:104.75, vung:1},
-  {id:'pq',  ten:'Phú Quốc',          lat:9.90,  lon:103.90}
-];
-var KHOA_DL = 'tbien-du-lieu', KHOA_TUYEN = 'tbien-tuyen';
-var CAP = [1,6,12,20,29,39,50,62,75,89,103,118];
-var HUONG = ['Bắc','Đông Bắc','Đông','Đông Nam','Nam','Tây Nam','Tây','Tây Bắc'];
+var C = window.CHUNG;
+var KHOA_DL = 'tbien-du-lieu-2', KHOA_TUYEN = 'tbien-tuyen';
 var THU = ['CN','T2','T3','T4','T5','T6','T7'];
-var MUC_TEN = ['Êm','Biển động','Động mạnh'];
-
-var dl = null;              // số liệu đã tải
-var tuyenChon = {tu:'vt', den:'hp'};
-var moRong = {};
+var dl = null, tuyenChon = {tu:'vt', den:'hp'}, ngayChon = 0, moRong = {};
 
 function docKho(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
 function ghiKho(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
-
-function capGio(k){ if (k == null) return null; var c = 0; while (c < CAP.length && k >= CAP[c]) c++; return c; }
-function tenHuong(d){ return d == null ? '' : HUONG[Math.round(d/45) % 8]; }
-function so(x, n){ return x == null ? '–' : x.toFixed(n).replace('.', ','); }
-function muiTen(d){ return d == null ? '' : '<span class="mui" style="transform:rotate(' + Math.round(d + 180) + 'deg)">↑</span>'; }
-function mucGio(gio, giat, song){
-  var c = capGio(gio) || 0, g = capGio(giat) || 0, s = song || 0;
-  if (c >= 8 || g >= 10 || s >= 3.5) return 2;
-  if (c >= 6 || g >= 8 || s >= 2) return 1;
-  return 0;
-}
 function hai(n){ return (n < 10 ? '0' : '') + n; }
-function khoaGioNay(){ var d = new Date(); return d.getFullYear() + '-' + hai(d.getMonth()+1) + '-' + hai(d.getDate()) + 'T' + hai(d.getHours()) + ':00'; }
-function nhanNgay(ngay){
-  var p = ngay.split('-'); var d = new Date(+p[0], +p[1]-1, +p[2]);
+function gioNay(){ var d = new Date(); return d.getFullYear() + '-' + hai(d.getMonth()+1) + '-' + hai(d.getDate()) + 'T' + hai(d.getHours()) + ':00'; }
+function nhanNgay(n){
+  var p = n.split('-'), d = new Date(+p[0], +p[1]-1, +p[2]);
   var cach = Math.round((d - new Date(new Date().setHours(0,0,0,0))) / 86400000);
-  return {thu: THU[d.getDay()], ng: p[2] + '/' + p[1], cach: cach};
+  return {ngan: cach === 0 ? 'Nay' : THU[d.getDay()], dai: cach === 0 ? 'Hôm nay' : cach === 1 ? 'Ngày mai' : (THU[d.getDay()] === 'CN' ? 'Chủ nhật' : 'Thứ ' + ['','','Hai','Ba','Tư','Năm','Sáu','Bảy'][d.getDay()+1]) + ' ' + p[2] + '/' + p[1]};
 }
-
-/* ---------- Tải số liệu ---------- */
-function taiSoLieu(){
-  var nut = document.getElementById('lammoi');
-  nut.disabled = true; nut.textContent = 'Đang tải';
-  document.getElementById('capnhat').classList.add('dang-tai');
-  var la = DIEM.map(function(p){ return p.lat; }).join(',');
-  var lo = DIEM.map(function(p){ return p.lon; }).join(',');
-  var chung = 'latitude=' + la + '&longitude=' + lo + '&timezone=Asia%2FBangkok&forecast_days=7';
-  var u1 = 'https://api.open-meteo.com/v1/forecast?' + chung + '&models=ecmwf_ifs&hourly=wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation';
-  var u2 = 'https://marine-api.open-meteo.com/v1/marine?' + chung + '&hourly=wave_height,wave_direction,wave_period';
-  function lay(u){ return fetch(u).then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); }); }
-  Promise.all([lay(u1), lay(u2)]).then(function(kq){
-    var a = [].concat(kq[0]), b = [].concat(kq[1]);
-    var moi = {luc: Date.now(), gio: a[0].hourly.time, diem: {}};
-    DIEM.forEach(function(p, i){
-      var f = a[i].hourly, m = b[i] ? b[i].hourly : null;
-      var viTri = {};
-      if (m) m.time.forEach(function(t, j){ viTri[t] = j; });
-      function songTheo(ten){ return f.time.map(function(t){ var j = viTri[t]; return (m && j != null) ? m[ten][j] : null; }); }
-      moi.diem[p.id] = {
-        gio: f.wind_speed_10m, huong: f.wind_direction_10m, giat: f.wind_gusts_10m, mua: f.precipitation,
-        song: songTheo('wave_height'), huongSong: songTheo('wave_direction'), chuKy: songTheo('wave_period')
-      };
-    });
-    dl = moi; ghiKho(KHOA_DL, dl);
-    document.getElementById('loi').hidden = true;
-    veTatCa();
-  }).catch(function(){
-    var loi = document.getElementById('loi');
-    loi.textContent = dl ? 'Không tải được số liệu mới, đang xem bản lưu trước. Kiểm tra mạng rồi bấm Làm mới.' : 'Không tải được số liệu. Kiểm tra mạng rồi bấm Làm mới.';
-    loi.hidden = false;
-    if (!dl) document.getElementById('ds').innerHTML = '<div class="trong">Chưa có số liệu</div>';
-  }).then(function(){
-    nut.disabled = false; nut.textContent = 'Làm mới';
-    document.getElementById('capnhat').classList.remove('dang-tai');
-    veCapNhat();
-  });
-}
-
-/* ---------- Tính tóm tắt ---------- */
 function cacNgay(){
-  var ds = [], homNay = khoaGioNay().slice(0,10);
-  dl.gio.forEach(function(t){ var n = t.slice(0,10); if (n >= homNay && ds.indexOf(n) < 0) ds.push(n); });
+  var ds = [], hn = gioNay().slice(0,10);
+  dl.gio.forEach(function(t){ var n = t.slice(0,10); if (n >= hn && ds.indexOf(n) < 0) ds.push(n); });
   return ds;
 }
-function tomTatNgay(id, ngay){
-  var d = dl.diem[id], nay = khoaGioNay();
-  var kq = {song:null, gio:null, giat:null, mua:0, muc:0, huong:null, co:false};
-  dl.gio.forEach(function(t, i){
-    if (t.slice(0,10) !== ngay || t < nay) return;
-    kq.co = true;
-    if (d.song[i] != null && (kq.song == null || d.song[i] > kq.song)) kq.song = d.song[i];
-    if (d.gio[i] != null && (kq.gio == null || d.gio[i] > kq.gio)) { kq.gio = d.gio[i]; kq.huong = d.huong[i]; }
-    if (d.giat[i] != null && (kq.giat == null || d.giat[i] > kq.giat)) kq.giat = d.giat[i];
-    kq.mua += d.mua[i] || 0;
-    kq.muc = Math.max(kq.muc, mucGio(d.gio[i], d.giat[i], d.song[i]));
-  });
-  return kq;
-}
-function viTriGioNay(){
-  var nay = khoaGioNay(), i = dl.gio.indexOf(nay);
-  if (i >= 0) return i;
-  for (i = 0; i < dl.gio.length; i++) if (dl.gio[i] > nay) return Math.max(0, i - 1);
-  return 0;
-}
-function cacDiemTuyen(){
-  var a = -1, b = -1;
-  DIEM.forEach(function(p, i){ if (p.id === tuyenChon.tu) a = i; if (p.id === tuyenChon.den) b = i; });
-  if (a < 0 || b < 0) { a = 0; b = DIEM.length - 1; }
-  var ds = DIEM.slice(Math.min(a,b), Math.max(a,b) + 1);
-  return a > b ? ds.reverse() : ds;
+function el(id){ return document.getElementById(id); }
+
+function taiSoLieu(){
+  var nut = el('lammoi'); nut.classList.add('quay'); nut.disabled = true;
+  var u = C.duongDan();
+  function lay(x){ return fetch(x).then(function(r){ if (!r.ok) throw new Error(r.status); return r.json(); }); }
+  Promise.all([lay(u.gio), lay(u.song)]).then(function(kq){
+    dl = C.gop(kq[0], kq[1]); dl.luc = Date.now(); ghiKho(KHOA_DL, dl);
+    el('loi').hidden = true; ve();
+  }).catch(function(){
+    el('loi').textContent = dl ? 'Không tải được số liệu mới, đang xem bản trước.' : 'Không tải được số liệu. Kiểm tra mạng rồi thử lại.';
+    el('loi').hidden = false;
+    if (!dl) el('tt-chu').textContent = 'Chưa có số liệu';
+  }).then(function(){ nut.classList.remove('quay'); nut.disabled = false; veChan(); });
 }
 
-/* ---------- Vẽ ---------- */
-function veCapNhat(){
-  var el = document.getElementById('capnhat');
-  if (!dl) { el.textContent = 'Chưa có số liệu'; return; }
-  var d = new Date(dl.luc);
-  el.textContent = 'Cập nhật ' + hai(d.getHours()) + ':' + hai(d.getMinutes()) + ' ngày ' + hai(d.getDate()) + '/' + hai(d.getMonth()+1);
+function veChan(){
+  var s = 'Mô hình ECMWF, như Windy';
+  if (dl) { var d = new Date(dl.luc); s += ' · cập nhật ' + hai(d.getHours()) + ':' + hai(d.getMinutes()); }
+  el('chan').innerHTML = s + ' · <a href="https://nchmf.gov.vn" target="_blank" rel="noopener">Tin bão chính thức</a>';
 }
-function veChonTuyen(){
-  ['tu','den'].forEach(function(k){
-    var s = document.getElementById(k);
-    s.innerHTML = DIEM.map(function(p){ return '<option value="' + p.id + '">' + p.ten + '</option>'; }).join('');
-    s.value = tuyenChon[k];
-  });
-}
-function veTatCa(){
-  veCapNhat();
+function ve(){
   if (!dl) return;
-  var diem = cacDiemTuyen(), ngay = cacNgay();
+  var diem = C.tuyen(tuyenChon.tu, tuyenChon.den), ngay = cacNgay(), nay = gioNay();
+  if (ngayChon >= ngay.length) ngayChon = 0;
   var tt = {};
-  diem.forEach(function(p){ tt[p.id] = ngay.map(function(n){ return tomTatNgay(p.id, n); }); });
+  diem.forEach(function(p){ tt[p.id] = ngay.map(function(n, j){ return C.tomTat(dl, p.id, n, j === 0 ? nay : null); }); });
 
-  /* Cảnh báo */
-  var khoi = [], tong = 0;
-  ngay.forEach(function(n, j){
-    var dong = diem.filter(function(p){ return tt[p.id][j].muc > 0; });
-    if (!dong.length) return;
-    var mucMax = Math.max.apply(null, dong.map(function(p){ return tt[p.id][j].muc; }));
-    tong = Math.max(tong, mucMax);
-    var nh = nhanNgay(n);
-    var song = 0, gio = 0, giat = 0;
-    dong.forEach(function(p){ var t = tt[p.id][j]; song = Math.max(song, t.song || 0); gio = Math.max(gio, t.gio || 0); giat = Math.max(giat, t.giat || 0); });
-    khoi.push('<div class="bao-ngay"><b>' + (nh.cach === 0 ? 'Hôm nay' : nh.cach === 1 ? 'Ngày mai' : nh.thu) + ' ' + nh.ng +
-      ': sóng đến ' + so(song,1) + ' m, gió cấp ' + capGio(gio) + ', giật cấp ' + capGio(giat) + '</b>' +
-      '<div class="bao-dong">' + dong.map(function(p){ return (tt[p.id][j].muc === 2 ? '<span class="ten">' + p.ten + '</span>' : p.ten); }).join(', ') + '</div></div>');
+  /* Dải 7 ngày */
+  el('bay').innerHTML = ngay.map(function(n, j){
+    var muc = 0, song = null;
+    diem.forEach(function(p){ var t = tt[p.id][j]; muc = Math.max(muc, t.muc); if (t.song != null && (song == null || t.song > song)) song = t.song; });
+    return '<button class="ngay" type="button" data-j="' + j + '" aria-pressed="' + (j === ngayChon) + '"><span class="thu">' + nhanNgay(n).ngan +
+      '</span><i class="cham c' + muc + '"></i><span class="so">' + C.so(song,1) + '</span></button>';
+  }).join('');
+
+  /* Ô trạng thái của ngày đang chọn */
+  var j = ngayChon, muc = 0, cao = null, gio = null, dong = [];
+  diem.forEach(function(p){ var t = tt[p.id][j]; muc = Math.max(muc, t.muc);
+    if (t.muc > 0) dong.push(p.ten);
+    if (t.song != null && (!cao || t.song > cao.t.song)) cao = {p:p, t:t};
+    if (t.gio != null && (gio == null || t.gio > gio)) gio = t.gio; });
+  el('tt').className = 'tt m' + muc;
+  el('tt-ngay').textContent = nhanNgay(ngay[j]).dai;
+  el('tt-chu').textContent = C.MUC_TEN[muc];
+  el('tt-phu').textContent = !cao ? '' : (dong.length ? 'Ở ' + dong.join(', ') + '. ' : '') +
+    'Sóng tới ' + C.so(cao.t.song,1) + ' m, gió tới cấp ' + C.capGio(gio) + '.';
+
+  /* Các điểm */
+  el('ds').innerHTML = diem.map(function(p){
+    var t = tt[p.id][j];
+    return '<div class="diem"><button class="hang" type="button" data-id="' + p.id + '" aria-expanded="' + !!moRong[p.id] + '">' +
+      '<i class="cham c' + t.muc + '"></i><span class="ten">' + p.ten + '</span><span class="so">' + C.so(t.song,1) + '<span class="don">m</span></span></button>' +
+      (moRong[p.id] ? chiTiet(p, ngay[j], t, j === 0 ? nay : null) : '') + '</div>';
+  }).join('');
+}
+function chiTiet(p, ngay, t, tuGio){
+  var d = dl.diem[p.id], dong = [];
+  dl.gio.forEach(function(g, i){
+    if (g.slice(0,10) !== ngay || (tuGio && g < tuGio) || +g.slice(11,13) % 3) return;
+    var canh = C.mucGio(d.gio[i], d.giat[i], d.song[i]) > 0 ? ' canh' : '';
+    dong.push('<span class="so">' + g.slice(11,13) + 'h</span><span>gió cấp <span class="so' + canh + '">' + C.capGio(d.gio[i]) + '</span> ' + C.tenHuong(d.huong[i]) +
+      '</span><span class="so' + canh + '">' + C.so(d.song[i],1) + ' m</span>');
   });
-  document.getElementById('bao').innerHTML = khoi.length
-    ? '<div class="bao m' + tong + '"><div class="bao-tieude">' + (tong === 2 ? 'Có biển động mạnh trên tuyến' : 'Có biển động trên tuyến') + '</div>' + khoi.join('') + '</div>'
-    : '<div class="bao m0"><div class="bao-tieude">Cả tuyến êm trong 7 ngày tới</div></div>';
-
-  /* Dải 7 ngày cả tuyến */
-  document.getElementById('bay').innerHTML = ngay.map(function(n, j){
-    var muc = 0, song = null, gio = null;
-    diem.forEach(function(p){ var t = tt[p.id][j]; muc = Math.max(muc, t.muc);
-      if (t.song != null && (song == null || t.song > song)) song = t.song;
-      if (t.gio != null && (gio == null || t.gio > gio)) gio = t.gio; });
-    var nh = nhanNgay(n);
-    return '<div class="ngay c' + muc + '"><span class="thu">' + (nh.cach === 0 ? 'Nay' : nh.thu) + '</span><span class="ng so">' + nh.ng +
-      '</span><span class="song so">' + so(song,1) + ' m</span><span class="gio so">cấp ' + (capGio(gio) == null ? '–' : capGio(gio)) + '</span></div>';
-  }).join('');
-
-  /* Từng điểm */
-  var i0 = viTriGioNay();
-  document.getElementById('ds').innerHTML = diem.map(function(p){
-    var d = dl.diem[p.id], t0 = tt[p.id][0];
-    var mucNay = mucGio(d.gio[i0], d.giat[i0], d.song[i0]);
-    var mini = ngay.map(function(n, j){ var t = tt[p.id][j], nh = nhanNgay(n);
-      return '<div class="c' + t.muc + '"><small>' + (nh.cach === 0 ? 'Nay' : nh.thu) + '</small><span class="so">' + so(t.song,1) + '</span></div>'; }).join('');
-    return '<div class="the diem">' +
-      '<button class="diem-dau" type="button" data-id="' + p.id + '" aria-expanded="' + (moRong[p.id] ? 'true' : 'false') + '">' +
-        '<div class="diem-hang"><span class="diem-ten">' + p.ten + '</span><span class="nhan c' + t0.muc + '">' + MUC_TEN[t0.muc] + '</span></div>' +
-        '<div class="diem-gio so"><span>Bây giờ: gió <b>cấp ' + capGio(d.gio[i0]) + '</b> ' + muiTen(d.huong[i0]) + ' ' + tenHuong(d.huong[i0]) + '</span>' +
-          '<span>giật <b>cấp ' + capGio(d.giat[i0]) + '</b></span><span>sóng <b>' + so(d.song[i0],1) + ' m</b></span></div>' +
-        '<div class="mini">' + mini + '</div>' +
-      '</button>' +
-      (moRong[p.id] ? veChiTiet(p, i0) : '') +
-    '</div>';
-  }).join('');
-}
-function veChiTiet(p, i0){
-  var d = dl.diem[p.id], hang = [], ngayTruoc = '';
-  for (var i = i0; i < dl.gio.length && i < i0 + 72; i += 3) {
-    var t = dl.gio[i], n = t.slice(0,10);
-    if (n !== ngayTruoc) { var nh = nhanNgay(n); hang.push('<tr class="dong-ngay"><td colspan="5">' + nh.thu + ' ' + nh.ng + '</td></tr>'); ngayTruoc = n; }
-    var muc = mucGio(d.gio[i], d.giat[i], d.song[i]);
-    hang.push('<tr><td class="so">' + t.slice(11,13) + 'h</td>' +
-      '<td class="so' + (capGio(d.gio[i]) >= 6 ? ' c' + muc : '') + '">' + muiTen(d.huong[i]) + ' cấp ' + capGio(d.gio[i]) + '</td>' +
-      '<td class="so">cấp ' + capGio(d.giat[i]) + '</td>' +
-      '<td class="so' + ((d.song[i] || 0) >= 2 ? ' c' + muc : '') + '">' + so(d.song[i],1) + ' m</td>' +
-      '<td class="so">' + (d.mua[i] ? so(d.mua[i],1) : '0') + '</td></tr>');
-  }
-  return '<div class="chi-tiet"><div class="cuon"><table><thead><tr><th>Giờ</th><th>Gió</th><th>Giật</th><th>Sóng</th><th>Mưa mm</th></tr></thead><tbody>' +
-    hang.join('') + '</tbody></table></div>' +
-    '<div class="lien"><a href="https://www.windy.com/?waves,' + p.lat + ',' + p.lon + ',8" target="_blank" rel="noopener">Xem trên Windy</a></div></div>';
+  return '<div class="chi-tiet">' +
+    '<div class="nhanh"><span>Gió tới <b>cấp ' + C.capGio(t.gio) + '</b></span><span>Giật <b>cấp ' + C.capGio(t.giat) + '</b></span><span>Mưa <b>' + C.so(t.mua,0) + ' mm</b></span></div>' +
+    (dong.length ? '<div class="gio-list">' + dong.join('') + '</div>' : '') +
+    '<a href="https://www.windy.com/?waves,' + p.lat + ',' + p.lon + ',8" target="_blank" rel="noopener">Xem trên Windy</a></div>';
 }
 
-/* ---------- Sự kiện ---------- */
-document.getElementById('lammoi').addEventListener('click', taiSoLieu);
-['tu','den'].forEach(function(k){
-  document.getElementById(k).addEventListener('change', function(e){ tuyenChon[k] = e.target.value; ghiKho(KHOA_TUYEN, tuyenChon); veTatCa(); });
+/* Sự kiện */
+el('lammoi').addEventListener('click', taiSoLieu);
+['tu','den'].forEach(function(k){ el(k).addEventListener('change', function(e){ tuyenChon[k] = e.target.value; ghiKho(KHOA_TUYEN, tuyenChon); veTuyen(); ve(); }); });
+el('doi').addEventListener('click', function(){ var a = tuyenChon.tu; tuyenChon.tu = tuyenChon.den; tuyenChon.den = a; ghiKho(KHOA_TUYEN, tuyenChon); veTuyen(); ve(); });
+el('bay').addEventListener('click', function(e){ var b = e.target.closest('.ngay'); if (!b) return; ngayChon = +b.getAttribute('data-j'); ve(); });
+el('ds').addEventListener('click', function(e){ var b = e.target.closest('.hang'); if (!b) return; var id = b.getAttribute('data-id'); moRong[id] = !moRong[id]; ve(); });
+el('chep').addEventListener('click', function(){
+  var t = el('kenh').textContent, b = this;
+  function xong(){ b.textContent = 'Đã chép'; setTimeout(function(){ b.textContent = 'Chép'; }, 1500); }
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(xong, function(){});
 });
-document.getElementById('doi').addEventListener('click', function(){
-  var a = tuyenChon.tu; tuyenChon.tu = tuyenChon.den; tuyenChon.den = a;
-  ghiKho(KHOA_TUYEN, tuyenChon); veChonTuyen(); veTatCa();
-});
-document.getElementById('ds').addEventListener('click', function(e){
-  var b = e.target.closest('.diem-dau'); if (!b) return;
-  var id = b.getAttribute('data-id'); moRong[id] = !moRong[id]; veTatCa();
-});
-document.addEventListener('visibilitychange', function(){
-  if (!document.hidden && (!dl || Date.now() - dl.luc > 60*60*1000)) taiSoLieu();
-});
+document.addEventListener('visibilitychange', function(){ if (!document.hidden && (!dl || Date.now() - dl.luc > 3600000)) taiSoLieu(); });
 
-/* ---------- Khởi động: hiện bản lưu ngay, rồi tải mới nếu đã cũ hơn 1 giờ ---------- */
+function veTuyen(){
+  ['tu','den'].forEach(function(k){
+    el(k).innerHTML = C.DIEM.map(function(p){ return '<option value="' + p.id + '">' + p.ten + '</option>'; }).join('');
+    el(k).value = tuyenChon[k];
+    el(k + '-ten').textContent = el(k).options[el(k).selectedIndex].text;
+  });
+}
+
+/* Khởi động */
 (function(){
-  var t = docKho(KHOA_TUYEN);
-  if (t && t.tu && t.den) tuyenChon = t;
-  veChonTuyen();
-  var luu = docKho(KHOA_DL);
-  if (luu && luu.gio && luu.diem) { dl = luu; veTatCa(); }
-  if (!dl || Date.now() - dl.luc > 60*60*1000) taiSoLieu(); else veCapNhat();
+  var t = docKho(KHOA_TUYEN); if (t && t.tu && t.den) tuyenChon = t;
+  veTuyen();
+  var luu = docKho(KHOA_DL); if (luu && luu.gio && luu.diem) { dl = luu; ve(); }
+  veChan();
+  if (!dl || Date.now() - dl.luc > 3600000) taiSoLieu();
+  fetch('cau-hinh.json', {cache:'no-store'}).then(function(r){ return r.json(); }).then(function(c){
+    el('kenh').textContent = c.kenh;
+    var a = C.DIEM.filter(function(p){ return p.id === c.tu; })[0], b = C.DIEM.filter(function(p){ return p.id === c.den; })[0];
+    if (a && b) el('tb-tuyen').textContent = 'Báo cho tuyến ' + a.ten + ' → ' + b.ten + ' lúc 6h sáng, và ngay khi có biển động mới.';
+  }).catch(function(){});
 })();
 </script>
 </body>
