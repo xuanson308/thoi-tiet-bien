@@ -1,0 +1,26 @@
+name: Canh bao bien
+
+on:
+  schedule:
+    # Giờ UTC: 23h = 6h sáng VN, rồi 9h, 12h, 15h, 18h, 21h giờ VN
+    - cron: "0 23,2,5,8,11,14 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node canh-bao.js
+      - name: Luu danh sach da bao
+        run: |
+          git config user.name "canh-bao"
+          git config user.email "canh-bao@users.noreply.github.com"
+          git add da-bao.json
+          git diff --cached --quiet || (git commit -m "Cap nhat da bao" && git push)
